@@ -15,7 +15,7 @@ const rule = require("../../../lib/rules/no-path-concat"),
 // Tests
 //------------------------------------------------------------------------------
 
-const ruleTester = new RuleTester();
+const ruleTester = new RuleTester({ parserOptions: { ecmaVersion: 6 } });
 
 ruleTester.run("no-path-concat", rule, {
 
@@ -24,50 +24,84 @@ ruleTester.run("no-path-concat", rule, {
         "var fullPath = __dirname == \"foo.js\";",
         "if (fullPath === __dirname) {}",
         "if (__dirname === fullPath) {}",
-        "var fullPath = __dirname + \".js\";"
+        "var fullPath = __dirname + \".js\";",
+        "var fullPath = `${dirname}/foo.js`;",
+        "var fullPath = `${filename}/foo.js`;",
+        "var fullPath = `${__dirname}.js`;",
+        "var fullPath = `${__filename}.js`;",
+        "var fullPath = __dirname == `${dirname}/foo.js`;",
+        "if(__filename === `${filename}/foo.js`){}"
     ],
 
     invalid: [
         {
             code: "var fullPath = __dirname + \"/foo.js\";",
             errors: [{
-                message: "Use path.join() or path.resolve() instead of + to create paths.",
+                message: "Use path.join() or path.resolve() instead of concatenation to create paths.",
                 type: "BinaryExpression"
             }]
         },
         {
             code: "var fullPath = __filename + \"/foo.js\";",
             errors: [{
-                message: "Use path.join() or path.resolve() instead of + to create paths.",
+                message: "Use path.join() or path.resolve() instead of concatenation to create paths.",
                 type: "BinaryExpression"
             }]
         },
         {
             code: "var fullPath = \"/foo.js\" + __filename;",
             errors: [{
-                message: "Use path.join() or path.resolve() instead of + to create paths.",
+                message: "Use path.join() or path.resolve() instead of concatenation to create paths.",
                 type: "BinaryExpression"
             }]
         },
         {
             code: "var fullPath = \"/foo.js\" + __dirname;",
             errors: [{
-                message: "Use path.join() or path.resolve() instead of + to create paths.",
+                message: "Use path.join() or path.resolve() instead of concatenation to create paths.",
                 type: "BinaryExpression"
             }]
         },
         {
             code: "var fullPath = \"/foo/\" + __dirname + \".js\";",
             errors: [{
-                message: "Use path.join() or path.resolve() instead of + to create paths.",
+                message: "Use path.join() or path.resolve() instead of concatenation to create paths.",
                 type: "BinaryExpression"
             }]
         },
         {
             code: "var fullPath = __dirname + \"/../foo\";",
             errors: [{
-                message: "Use path.join() or path.resolve() instead of + to create paths.",
+                message: "Use path.join() or path.resolve() instead of concatenation to create paths.",
                 type: "BinaryExpression"
+            }]
+        },
+        {
+            code: "var fullPath = `${__dirname}/foo.js`",
+            errors: [{
+                message: "Use path.join() or path.resolve() instead of concatenation to create paths.",
+                type: "TemplateLiteral"
+            }]
+        },
+        {
+            code: "var fullPath = `/foo/${__dirname}.js`",
+            errors: [{
+                message: "Use path.join() or path.resolve() instead of concatenation to create paths.",
+                type: "TemplateLiteral"
+            }]
+        },
+        {
+            code: "var fullPath = `${__dirname}`",
+            errors: [{
+                message: "Use path.join() or path.resolve() instead of concatenation to create paths.",
+                type: "TemplateLiteral"
+            }]
+        },
+        {
+            code: "var fullPath = `${__dirname}/../foo`",
+            errors: [{
+                message: "Use path.join() or path.resolve() instead of concatenation to create paths.",
+                type: "TemplateLiteral"
             }]
         }
     ]

@@ -23,7 +23,8 @@ ruleTester.run("no-path-concat", rule, {
         "var fullPath = dirname + \"foo.js\";",
         "var fullPath = __dirname == \"foo.js\";",
         "if (fullPath === __dirname) {}",
-        "if (__dirname === fullPath) {}"
+        "if (__dirname === fullPath) {}",
+        "var fullPath = __dirname + \".js\";"
     ],
 
     invalid: [
@@ -50,6 +51,20 @@ ruleTester.run("no-path-concat", rule, {
         },
         {
             code: "var fullPath = \"/foo.js\" + __dirname;",
+            errors: [{
+                message: "Use path.join() or path.resolve() instead of + to create paths.",
+                type: "BinaryExpression"
+            }]
+        },
+        {
+            code: "var fullPath = \"/foo/\" + __dirname + \".js\";",
+            errors: [{
+                message: "Use path.join() or path.resolve() instead of + to create paths.",
+                type: "BinaryExpression"
+            }]
+        },
+        {
+            code: "var fullPath = __dirname + \"/../foo\";",
             errors: [{
                 message: "Use path.join() or path.resolve() instead of + to create paths.",
                 type: "BinaryExpression"

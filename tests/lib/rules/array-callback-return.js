@@ -16,8 +16,29 @@ const ruleTester = new RuleTester();
 
 const allowImplicitOptions = [{ allowImplicit: true }];
 
+const checkForEach = [{ checkForEach: true }];
+
 ruleTester.run("array-callback-return", rule, {
     valid: [
+        "foo.forEach(bar || function(x) { var a=0; })",
+        "foo.forEach(bar || function(x) { return a; })",
+        "foo.forEach(function() {return function() { var a = 0;}}())",
+        "foo.forEach(function(x) { var a=0; })",
+        "foo.forEach(function(x) {return;})",
+        "foo.forEach(function(x) { if (a === b) { return;} var a=0; })",
+        "foo.forEach(function(x) { if (a === b) { return x;} var a=0; })",
+        "foo.forEach(function(x) { return x; })",
+        "foo.bar().forEach(function(x) { return; })",
+        "[\"foo\",\"bar\",\"baz\"].forEach(function(x) { return x; })",
+        { code: "foo.forEach((x) => { var a=0; })", parserOptions: { ecmaVersion: 6 } },
+        { code: "foo.forEach((x) => { if (a === b) { return;} var a=0; })", parserOptions: { ecmaVersion: 6 } },
+
+        // options: { checkForEach: true }
+        { code: "foo.forEach(function() {return function() { if (a == b) { return; }}}())", options: checkForEach },
+        { code: "foo.forEach(function(x) { var a=0; })", options: checkForEach },
+        { code: "foo.forEach(function(x) { if (a === b) { return;} var a=0; })", options: checkForEach },
+        { code: "foo.forEach((x) => { var a=0; })", options: checkForEach, parserOptions: { ecmaVersion: 6 } },
+        { code: "foo.forEach((x) => { if (a === b) { return;} var a=0; })", options: checkForEach, parserOptions: { ecmaVersion: 6 } },
 
         // options: { allowImplicit: false }
         "Array.from(x, function() { return true; })",
@@ -82,6 +103,15 @@ ruleTester.run("array-callback-return", rule, {
         { code: "foo.map(function* () {})", parserOptions: { ecmaVersion: 6 } }
     ],
     invalid: [
+        { code: "foo.forEach(function() {return function() { if (a == b) { return a; }}}())", options: checkForEach, errors: [{ messageId: "expectedNoReturnValue", data: { name: "Function" } }] },
+        { code: "foo.forEach(bar || function(x) { return; })", options: checkForEach, errors: [{ messageId: "noReturnExpected", data: { name: "function" } }] },
+        { code: "foo.forEach(function(x) { if (a == b) {return x;}})", options: checkForEach, errors: [{ messageId: "expectedNoReturnValue", data: { name: "Function" } }] },
+        { code: "foo.forEach(function(x) { if (a == b) {return undefined;}})", options: checkForEach, errors: [{ messageId: "expectedNoReturnValue", data: { name: "Function" } }] },
+        { code: "foo.forEach(function(x) { return;})", options: checkForEach, errors: [{ messageId: "noReturnExpected", data: { name: "function" } }] },
+        { code: "foo.forEach(function bar(x) { return x;})", options: checkForEach, errors: [{ messageId: "noReturnExpected", data: { name: "function 'bar'" } }, { messageId: "expectedNoReturnValue", data: { name: "Function 'bar'" } }] },
+        { code: "foo.bar().forEach(function bar(x) { return x;})", options: checkForEach, errors: [{ messageId: "noReturnExpected", data: { name: "function 'bar'" } }, { messageId: "expectedNoReturnValue", data: { name: "Function 'bar'" } }] },
+        { code: "[\"foo\",\"bar\"].forEach(function bar(x) { return x;})", options: checkForEach, errors: [{ messageId: "noReturnExpected", data: { name: "function 'bar'" } }, { messageId: "expectedNoReturnValue", data: { name: "Function 'bar'" } }] },
+        { code: "foo.forEach((x) => { return x;})", options: checkForEach, parserOptions: { ecmaVersion: 6 }, errors: [{ messageId: "noReturnExpected", data: { name: "arrow function" } }, { messageId: "expectedNoReturnValue", data: { name: "Arrow function" } }] },
         { code: "Array.from(x, function() {})", errors: [{ messageId: "expectedInside", data: { name: "function" } }] },
         { code: "Array.from(x, function foo() {})", errors: [{ messageId: "expectedInside", data: { name: "function 'foo'" } }] },
         { code: "Int32Array.from(x, function() {})", errors: [{ messageId: "expectedInside", data: { name: "function" } }] },

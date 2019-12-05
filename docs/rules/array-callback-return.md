@@ -74,7 +74,7 @@ var bar = foo.map(node => node.getAttribute("id"));
 
 ## Options
 
-This rule has an object option:
+This rule has two object options:
 
 * `"allowImplicit": false` (default) When set to true, allows implicitly returning `undefined` with a `return` statement containing no expression.
 
@@ -84,6 +84,40 @@ Examples of **correct** code for the `{ "allowImplicit": true }` option:
 /*eslint array-callback-return: ["error", { allowImplicit: true }]*/
 var undefAllTheThings = myArray.map(function(item) {
     return;
+});
+```
+
+* `"checkForEach": false` (default) When set to true, rule will also report forEach callbacks which return a value.
+
+Examples of **incorrect** code for the `{ "checkForEach": true }` option:
+
+```js
+/*eslint array-callback-return: ["error", { checkForEach: true }]*/
+myArray.forEach(function(item) {
+    return handleItem(item)
+});
+
+myArray.forEach(function(item) {
+    if (item < 0) {
+        return x;
+    }
+    handleItem(item);
+});
+```
+
+Examples of **correct** code for the `{ "checkForEach": true }` option:
+
+```js
+/*eslint array-callback-return: ["error", { checkForEach: true }]*/
+myArray.forEach(function(item) {
+    handleItem(item)
+});
+
+myArray.forEach(function(item) {
+    if (item < 0) {
+        return;
+    }
+    handleItem(item);
 });
 ```
 
